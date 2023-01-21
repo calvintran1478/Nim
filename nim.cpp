@@ -1,28 +1,8 @@
 #include <iostream>
 #include <string>
 #include <cstdlib>
+#include <bits/stdc++.h>
 using namespace std;
-
-int *split(string str, char del, int *len) {
-
-    // Allocate memory for the array
-    *len = getNumInput(str, del);
-    int *arr = (int*) malloc(sizeof(int) * *len);
-    if (!arr) {
-        cout << "Memory Allocation Failed";
-        exit(1);
-    }
-
-    // Parse data and store it into the array
-    int i = 0;
-    for (char c : str) {
-        if (c != del) {
-            arr[i] = c - 48;
-            i++;
-        }
-    }
-    return arr;
-}
 
 int getNumInput(string str, char del) {
 
@@ -34,6 +14,29 @@ int getNumInput(string str, char del) {
         }
     }
     return counter + 1;
+}
+
+bool isValidGame(string str) {
+
+    int len = str.length();
+
+    // Check str starts and ends with an int
+    if (!isdigit(str[0]) || !isdigit(str[len - 1])) {
+        return false;
+    }
+
+    // Check for no consecutive spaces
+    if (str.find("  ") != string::npos) {
+        return false;
+    }
+
+    // Check each character is either a space or a digit
+    for (char c : str) {
+        if (c != ' ' && !isdigit(c)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 class NimGame {
@@ -89,29 +92,50 @@ class NimGame {
 
 int main() {
 
-    // TODO: Add option for random nim game
-
-    // Get input of from the user (no leading/trailing spaces)
+    // Get input of from the user
     string nim_data;
-    cout << "Enter a list of numbers representing a game of Nim\n";
-    cout << "Example: 1 3 4\n";
-    getline(cin, nim_data);
+    bool valid_game = false;
+    while (!valid_game) {
+        cout << "Enter a list of numbers representing a game of Nim\n";
+        cout << "Example: 1 3 4\n";
+        getline(cin, nim_data);
 
-    // TODO: Check user input (array of ints with length >= 1)
+        if (nim_data.length() == 0) {
+            cout << "Error: list cannot be empty";
+        } else if (!isValidGame(nim_data)) {
+            cout << "Error: Invalid format";
+        } else {
+            valid_game = true;
+        }
+    }
 
     // Parse data into an array
-    int len;
     char del = ' ';
-    int *arr = split(nim_data, del, &len);
+    int len = getNumInput(nim_data, del);
+    int arr[len];
+    int counter = 0;
+    
+    string temp = "";
+    for (char c : nim_data) {
+        if (c == del) {
+            arr[counter] = stoi(temp);
+            temp = "";
+            counter++;
+        } else {
+            temp += c;
+        }
+    }
+    arr[counter] = stoi(temp);
+
+    // Create the Nim Game
     NimGame nim(arr, len);
 
     // Continue making moves until there are no tokens left
     while(!nim.isGameOver()) {
-        // TODO: Add option to go first or second
         
         // Player Move
-        bool valid_move;
-        do {
+        bool valid_move = false;
+        while (!valid_move) {
             int index;
             int to_remove;
             cout << nim.toString();
@@ -122,12 +146,9 @@ int main() {
             cout << endl;
             valid_move = nim.move(index, to_remove);
         }
-        while (!valid_move);
 
         // TODO: Computer Move
     }
-
-    free(arr);
 
     return 0;
 }

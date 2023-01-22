@@ -43,11 +43,15 @@ class NimGame {
     private:
     int *piles;
     int num_piles;
+    int num_players;
+    int curr_player;
 
     public:
-    NimGame(int *arr, int len) {
-        int *piles = arr;
-        int num_piles = len;
+    NimGame(int arr[], int n_piles, int n_players = 2) {
+        piles = arr;
+        num_piles = n_piles;
+        num_players = n_players;
+        curr_player = 1;
     }
 
     int getNimSum() {
@@ -61,25 +65,61 @@ class NimGame {
     bool isGameOver() {
         for (int i = 0; i < num_piles; i++) {
             if (piles[i] != 0) {
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     bool move(int pile_index, int num_removed) {
-        if (num_removed > piles[pile_index]) {
-            cout << "Invalid Move: Not enough tokens on the pile";
+        // Check for valid pile selection
+        if (pile_index < 0 || pile_index >= num_piles) {
+            cout << "Error: pile does not exist\n";
             return false;
         }
+        
+        // Check for valid selection of tokens to remove
+        if (num_removed < 1) {
+            cout << "Must remove at least one token\n";
+            return false;
+        } else if (num_removed > piles[pile_index]) {
+            cout << "Invalid Move: Not enough tokens on the pile\n";
+            return false;
+        }
+
+        // Perform the move and update the current player
         piles[pile_index] -= num_removed;
+        if (curr_player == num_players) {
+            curr_player = 1;
+        } else {
+            curr_player++;
+        }
         return true;
+    }
+
+    int getNumPiles() {
+        return num_piles;
+    }
+
+    int getNumTokens(int pile_index) {
+        return piles[pile_index];
+    }
+
+    int getCurrentPlayer() {
+        return curr_player;
+    }
+
+    int getPreviousPlayer() {
+        if (curr_player == 1) {
+            return num_players;
+        }
+        return curr_player - 1;
     }
 
     string toString() {
         string result = "[";
         for (int i = 0; i < num_piles; i++) {
-            result += piles[i];
+            result += to_string(piles[i]);
             result += ", ";
         }
         result.pop_back();
@@ -92,7 +132,11 @@ class NimGame {
 
 int main() {
 
-    // Get input of from the user
+    // Game introduction
+    cout << "Welcome to Nim!\n";
+    cout << endl;
+
+    // Get user input
     string nim_data;
     bool valid_game = false;
     while (!valid_game) {
@@ -101,13 +145,14 @@ int main() {
         getline(cin, nim_data);
 
         if (nim_data.length() == 0) {
-            cout << "Error: list cannot be empty";
+            cout << "Error: list cannot be empty\n";
         } else if (!isValidGame(nim_data)) {
-            cout << "Error: Invalid format";
+            cout << "\nError: Invalid format\n";
         } else {
             valid_game = true;
         }
     }
+    cout << endl;
 
     // Parse data into an array
     char del = ' ';
@@ -138,17 +183,18 @@ int main() {
         while (!valid_move) {
             int index;
             int to_remove;
-            cout << nim.toString();
-            cout << "Select a pile (index): ";
+            cout << "Player " << nim.getCurrentPlayer() << "'s Turn\n";
+            cout << nim.toString() << endl;
+            cout << "Select a pile: ";
             cin >> index;
-            cout << "\nEnter number of token to remove: ";
+            cout << "Enter number of tokens to remove: ";
             cin >> to_remove;
             cout << endl;
-            valid_move = nim.move(index, to_remove);
+            valid_move = nim.move(index - 1, to_remove);
         }
-
-        // TODO: Computer Move
     }
+
+    cout << "Player " << nim.getPreviousPlayer() << " wins!\n";
 
     return 0;
 }

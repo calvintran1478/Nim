@@ -4,6 +4,16 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+int isNumeric(string str) {
+    int len = str.length();
+    for (int i = 0; i < len; i++) {
+        if (!isdigit(str[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
 int getNumInput(string str, char del) {
 
     int len = str.length();
@@ -74,13 +84,13 @@ class NimGame {
     bool move(int pile_index, int num_removed) {
         // Check for valid pile selection
         if (pile_index < 0 || pile_index >= num_piles) {
-            cout << "Error: pile does not exist\n";
+            cout << "Error: Pile does not exist\n";
             return false;
         }
         
         // Check for valid selection of tokens to remove
         if (num_removed < 1) {
-            cout << "Must remove at least one token\n";
+            cout << "Invalid Move: Must remove at least one token\n";
             return false;
         } else if (num_removed > piles[pile_index]) {
             cout << "Invalid Move: Not enough tokens on the pile\n";
@@ -136,7 +146,26 @@ int main() {
     cout << "Welcome to Nim!\n";
     cout << endl;
 
-    // Get user input
+    // Get number of players
+    string user_input;
+    int num_players;
+    bool vaild_player_num = false;
+    while (!vaild_player_num) {
+        cout << "Enter number of players: ";
+        getline(cin, user_input);
+        cout << endl;
+
+        if (!isNumeric(user_input)) {
+            cout << "Error: Number of players must be an integer\n";
+        } else if (stoi(user_input) < 2) {
+            cout << "Error: Number of players must be at least 2\n";
+        } else {
+            num_players = stoi(user_input);
+            vaild_player_num = true;
+        }
+    }
+
+    // Get nim set up
     string nim_data;
     bool valid_game = false;
     while (!valid_game) {
@@ -145,7 +174,7 @@ int main() {
         getline(cin, nim_data);
 
         if (nim_data.length() == 0) {
-            cout << "Error: list cannot be empty\n";
+            cout << "Error: List cannot be empty\n";
         } else if (!isValidGame(nim_data)) {
             cout << "\nError: Invalid format\n";
         } else {
@@ -173,7 +202,7 @@ int main() {
     arr[counter] = stoi(temp);
 
     // Create the Nim Game
-    NimGame nim(arr, len);
+    NimGame nim(arr, len, num_players);
 
     // Continue making moves until there are no tokens left
     while(!nim.isGameOver()) {
@@ -181,8 +210,8 @@ int main() {
         // Player Move
         bool valid_move = false;
         while (!valid_move) {
-            int index;
-            int to_remove;
+            string index;
+            string to_remove;
             cout << "Player " << nim.getCurrentPlayer() << "'s Turn\n";
             cout << nim.toString() << endl;
             cout << "Select a pile: ";
@@ -190,7 +219,15 @@ int main() {
             cout << "Enter number of tokens to remove: ";
             cin >> to_remove;
             cout << endl;
-            valid_move = nim.move(index - 1, to_remove);
+
+            // Error checking
+            if (!isNumeric(index)) {
+                cout << "Error: Pile choice must be an integer\n";
+            } else if (!isNumeric(to_remove)) {
+                cout << "Error: Tokens to remove must be an integer\n";
+            } else {
+                valid_move = nim.move(stoi(index) - 1, stoi(to_remove));
+            }
         }
     }
 

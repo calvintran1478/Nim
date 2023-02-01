@@ -27,11 +27,13 @@ int getNumInput(string str, char del) {
   return counter + 1;
 }
 
+bool isValidDigit(char c) { return isdigit(c) && (c != 48); }
+
 bool isValidGame(string str) {
   int len = str.length();
 
   // Check str starts and ends with an int
-  if (!isdigit(str[0]) || !isdigit(str[len - 1])) {
+  if (!isValidDigit(str[0]) || !isValidDigit(str[len - 1])) {
     return false;
   }
 
@@ -42,7 +44,7 @@ bool isValidGame(string str) {
 
   // Check each character is either a space or a digit
   for (char c : str) {
-    if (c != ' ' && !isdigit(c)) {
+    if (c != ' ' && !isValidDigit(c)) {
       return false;
     }
   }
@@ -225,7 +227,7 @@ int main() {
   string nim_data;
   bool valid_game = false;
   while (!valid_game) {
-    cout << "Enter a list of numbers representing a game of Nim\n";
+    cout << "Enter a list of positive integers representing a game of Nim\n";
     cout << "Example: 1 3 4\n";
     getline(cin, nim_data);
 
@@ -262,7 +264,6 @@ int main() {
 
   // Continue making moves until there are no tokens left
   while (!nim.isGameOver()) {
-    // Player Move
     nim.move();
   }
 

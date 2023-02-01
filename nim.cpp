@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <vector>
 using namespace std;
 
 int isNumeric(string str) {
@@ -48,21 +49,12 @@ bool isValidGame(string str) {
   return true;
 }
 
-class NimGame {
+class NimBoard {
  private:
   int *piles;
   int num_piles;
-  int num_players;
-  int curr_player;
 
  public:
-  NimGame(int arr[], int n_piles, int n_players = 2) {
-    piles = arr;
-    num_piles = n_piles;
-    num_players = n_players;
-    curr_player = 1;
-  }
-
   int getNimSum() {
     int nim_sum = 0;
     for (int i = 0; i < num_piles; i++) {
@@ -96,13 +88,9 @@ class NimGame {
       return false;
     }
 
-    // Perform the move and update the current player
+    // Perform the move
     piles[pile_index] -= num_removed;
-    if (curr_player == num_players) {
-      curr_player = 1;
-    } else {
-      curr_player++;
-    }
+
     return true;
   }
 
@@ -110,13 +98,9 @@ class NimGame {
 
   int getNumTokens(int pile_index) { return piles[pile_index]; }
 
-  int getCurrentPlayer() { return curr_player; }
-
-  int getPreviousPlayer() {
-    if (curr_player == 1) {
-      return num_players;
-    }
-    return curr_player - 1;
+  void setBoard(int arr[], int n_piles) {
+    piles = arr;
+    num_piles = n_piles;
   }
 
   string toString() {
@@ -131,6 +115,86 @@ class NimGame {
 
     return result;
   }
+};
+
+class NimPlayer {
+ protected:
+  NimBoard *board;
+
+ public:
+  string name;
+  void setName(string s) { name = s; }
+  void setGame(NimBoard *n) { board = n; }
+  virtual void move() = 0;
+};
+
+class HumanPlayer : public NimPlayer {
+ public:
+  void move() {
+    // Player Move
+    bool valid_move = false;
+    while (!valid_move) {
+      string index;
+      string to_remove;
+      cout << name << "'s Turn\n";
+      cout << board->toString() << endl;
+      cout << "Select a pile: ";
+      cin >> index;
+      cout << "Enter number of tokens to remove: ";
+      cin >> to_remove;
+      cout << endl;
+
+      // Error checking
+      if (!isNumeric(index)) {
+        cout << "Error: Pile choice must be an integer\n";
+      } else if (!isNumeric(to_remove)) {
+        cout << "Error: Tokens to remove must be an integer\n";
+      } else {
+        valid_move = board->move(stoi(index) - 1, stoi(to_remove));
+      }
+    }
+  }
+};
+
+class NimGame {
+ private:
+  NimBoard board;
+  vector<HumanPlayer> players;
+  vector<HumanPlayer>::iterator curr;
+
+ public:
+  NimGame(int arr[], int n_piles, int nim_players = 2) {
+    board.setBoard(arr, n_piles);
+    HumanPlayer p;
+    for (int i = 0; i < nim_players; i++) {
+      p.setGame(&board);
+      p.setName("Player " + to_string(i + 1));
+      players.push_back(p);
+    }
+    curr = players.begin();
+  }
+
+  bool isGameOver() { return board.isGameOver(); }
+
+  HumanPlayer getCurrentPlayer() { return *curr; }
+
+  HumanPlayer getPreviousPlayer() {
+    if (curr == players.begin()) {
+      return *players.end();
+    }
+    return *prev(curr, 1);
+  }
+
+  void move() {
+    // Move current player and update to the next player
+    (*curr).move();
+    curr++;
+    if (curr == players.end()) {
+      curr = players.begin();
+    }
+  }
+
+  string toString() { return board.toString(); }
 };
 
 int main() {
@@ -199,30 +263,10 @@ int main() {
   // Continue making moves until there are no tokens left
   while (!nim.isGameOver()) {
     // Player Move
-    bool valid_move = false;
-    while (!valid_move) {
-      string index;
-      string to_remove;
-      cout << "Player " << nim.getCurrentPlayer() << "'s Turn\n";
-      cout << nim.toString() << endl;
-      cout << "Select a pile: ";
-      cin >> index;
-      cout << "Enter number of tokens to remove: ";
-      cin >> to_remove;
-      cout << endl;
-
-      // Error checking
-      if (!isNumeric(index)) {
-        cout << "Error: Pile choice must be an integer\n";
-      } else if (!isNumeric(to_remove)) {
-        cout << "Error: Tokens to remove must be an integer\n";
-      } else {
-        valid_move = nim.move(stoi(index) - 1, stoi(to_remove));
-      }
-    }
+    nim.move();
   }
 
-  cout << "Player " << nim.getPreviousPlayer() << " wins!\n";
+  cout << nim.getPreviousPlayer().name << " wins!\n";
 
   return 0;
 }

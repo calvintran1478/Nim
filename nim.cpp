@@ -182,7 +182,7 @@ class NimGame {
 
   HumanPlayer getPreviousPlayer() {
     if (curr == players.begin()) {
-      return *players.end();
+      return *(players.end() - 1);
     }
     return *prev(curr, 1);
   }
